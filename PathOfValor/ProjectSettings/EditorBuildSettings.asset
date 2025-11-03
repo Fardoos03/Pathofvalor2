@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Riko/Scenes/LoadingScene.unity
+    guid: 4a70dbca7df55dd488c1b57a760e18de
+  - enabled: 1
     path: Assets/PathOfValor/Scenes/Introduction.unity
     guid: 8c13838df8e680749ae1bb30cfe63339
   - enabled: 1

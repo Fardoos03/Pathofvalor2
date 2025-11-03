@@ -55,5 +55,6 @@ namespace Cainos.PixelArtTopDown_Basic
             West,
             East
         }    
+
     }
 }

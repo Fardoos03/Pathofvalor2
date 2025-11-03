@@ -4,25 +4,28 @@ namespace PathOfValor
 {
     public class ScenePlayerSpawner : MonoBehaviour
     {
+        private const string DefaultPlayerResourcePath = "Prefabs/player_main";
+
+        private static GameObject cachedPlayerPrefab;
+
         [SerializeField] private GameObject playerPrefab;
         [SerializeField] private Transform spawnPoint;
         [SerializeField] private bool snapCameraOnSpawn = true;
+        [SerializeField] private string playerResourcePath = DefaultPlayerResourcePath;
 
         private void Awake()
         {
-            if (playerPrefab == null)
-            {
-                Debug.LogWarning($"{nameof(ScenePlayerSpawner)} on {name} is missing a player prefab reference.", this);
+            var prefabToSpawn = ResolvePlayerPrefab();
+            if (prefabToSpawn == null)
                 return;
-            }
 
             var activeSpawn = spawnPoint == null ? transform : spawnPoint;
             var player = GameObject.FindGameObjectWithTag("Player");
 
             if (player == null)
             {
-                player = Instantiate(playerPrefab, activeSpawn.position, activeSpawn.rotation);
-                player.name = playerPrefab.name;
+                player = Instantiate(prefabToSpawn, activeSpawn.position, activeSpawn.rotation);
+                player.name = prefabToSpawn.name;
             }
             else
             {
@@ -49,6 +52,28 @@ namespace PathOfValor
             {
                 follow.SetTarget(player.transform, true);
             }
+        }
+
+        private GameObject ResolvePlayerPrefab()
+        {
+            if (playerPrefab != null)
+                return playerPrefab;
+
+            if (cachedPlayerPrefab == null)
+            {
+                var resourcePath = string.IsNullOrWhiteSpace(playerResourcePath)
+                    ? DefaultPlayerResourcePath
+                    : playerResourcePath;
+                cachedPlayerPrefab = Resources.Load<GameObject>(resourcePath);
+                if (cachedPlayerPrefab == null)
+                {
+                    Debug.LogError(
+                        $"{nameof(ScenePlayerSpawner)} on {name} could not load player prefab at Resources/{resourcePath}.",
+                        this);
+                }
+            }
+
+            return cachedPlayerPrefab;
         }
     }
 }
