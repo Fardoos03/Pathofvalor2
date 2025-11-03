@@ -23,6 +23,8 @@ namespace PathOfValor.RikoIntegration
         private const string PlayerPrefabPath = "Prefabs/player_main";
         private const string FloatingTextPrefabPath = "Prefabs/Others/FloatingText";
         private const string GameOverClipPath = "Audio/Characters/Player/382310__myfox14__game-over-arcade";
+        private const string FallbackEnemyActivatorName = "EnemyActivator (Bootstrap)";
+        private const string FallbackScenePortalName = "ScenePortal (Bootstrap)";
 
         private static bool _isSubscribed;
 
@@ -74,7 +76,7 @@ namespace PathOfValor.RikoIntegration
 
         private static T EnsureSingleton<T>(string resourcePath, bool dontDestroyOnLoad) where T : MonoBehaviour
         {
-            var existingInstances = FindObjectsOfType<T>();
+            var existingInstances = FindObjectsByType<T>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
             if (existingInstances != null && existingInstances.Length > 0)
             {
                 var primary = existingInstances[0];
@@ -124,7 +126,7 @@ namespace PathOfValor.RikoIntegration
 
         private static GameObject EnsureHud(out FloatingTextManager floatingTextManager)
         {
-            floatingTextManager = FindObjectOfType<FloatingTextManager>();
+            floatingTextManager = FindFirstObjectByType<FloatingTextManager>();
             if (floatingTextManager != null)
             {
                 var hudRoot = floatingTextManager.transform.root.gameObject;
@@ -162,7 +164,7 @@ namespace PathOfValor.RikoIntegration
 
         private static Player EnsurePlayer()
         {
-            var players = FindObjectsOfType<Player>();
+            var players = FindObjectsByType<Player>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
             Player primary = null;
 
             if (players != null && players.Length > 0)
@@ -180,6 +182,14 @@ namespace PathOfValor.RikoIntegration
                 var gunSprite = primary != null
                     ? primary.GetComponentInChildren<GunSpriteChanger>(true)
                     : null;
+
+                if (gunSprite == null && primary != null)
+                {
+                    if (TryAttachGunSpriteChanger(primary))
+                    {
+                        gunSprite = primary.GetComponentInChildren<GunSpriteChanger>(true);
+                    }
+                }
 
                 if (gunSprite == null)
                 {
@@ -225,6 +235,102 @@ namespace PathOfValor.RikoIntegration
             return player;
         }
 
+        private static bool TryAttachGunSpriteChanger(Player player)
+        {
+            if (player == null)
+            {
+                return false;
+            }
+
+            var existing = player.GetComponent<GunSpriteChanger>();
+            if (existing != null)
+            {
+                return true;
+            }
+
+            var prefab = Resources.Load<GameObject>(PlayerPrefabPath);
+            if (prefab == null)
+            {
+                Debug.LogWarning("[RikoBootstrapper] Unable to upgrade Player – player_main prefab not found.");
+                return false;
+            }
+
+            var template = prefab.GetComponent<GunSpriteChanger>();
+            if (template == null || template.GunSide == null || template.GunUp == null ||
+                template.GunDown == null || template.bulletSpawnPoint == null)
+            {
+                Debug.LogWarning("[RikoBootstrapper] Unable to upgrade Player – player_main prefab is missing gun sprite references.");
+                return false;
+            }
+
+            var gunRootTemplate = template.GunSide.transform.parent;
+            if (gunRootTemplate == null)
+            {
+                Debug.LogWarning("[RikoBootstrapper] Unable to upgrade Player – gun sprite container missing on template.");
+                return false;
+            }
+
+            var gunRootInstance = Instantiate(gunRootTemplate.gameObject, player.transform).transform;
+            CopyNamesRecursive(gunRootTemplate, gunRootInstance);
+
+            var bulletSpawnInstance = Instantiate(template.bulletSpawnPoint.gameObject, player.transform).transform;
+            bulletSpawnInstance.gameObject.name = template.bulletSpawnPoint.gameObject.name;
+
+            var changer = player.gameObject.AddComponent<GunSpriteChanger>();
+            changer.GunSide = MatchSpriteRenderer(gunRootInstance, template.GunSide);
+            changer.GunUp = MatchSpriteRenderer(gunRootInstance, template.GunUp);
+            changer.GunDown = MatchSpriteRenderer(gunRootInstance, template.GunDown);
+            changer.GunDiagUp = MatchSpriteRenderer(gunRootInstance, template.GunDiagUp);
+            changer.GunDiagDown = MatchSpriteRenderer(gunRootInstance, template.GunDiagDown);
+            changer.bulletSpawnPoint = bulletSpawnInstance;
+
+            if (changer.GunSide == null || changer.GunUp == null || changer.GunDown == null)
+            {
+                Destroy(gunRootInstance.gameObject);
+                Destroy(bulletSpawnInstance.gameObject);
+                Destroy(changer);
+                Debug.LogWarning("[RikoBootstrapper] Unable to upgrade Player – failed to map gun sprite renderers.");
+                return false;
+            }
+
+            return true;
+        }
+
+        private static void CopyNamesRecursive(Transform template, Transform instance)
+        {
+            if (template == null || instance == null)
+            {
+                return;
+            }
+
+            instance.name = template.name;
+            for (var i = 0; i < instance.childCount; i++)
+            {
+                var templateChild = i < template.childCount ? template.GetChild(i) : null;
+                var instanceChild = instance.GetChild(i);
+                CopyNamesRecursive(templateChild, instanceChild);
+            }
+        }
+
+        private static SpriteRenderer MatchSpriteRenderer(Transform root, SpriteRenderer templateRenderer)
+        {
+            if (root == null || templateRenderer == null)
+            {
+                return null;
+            }
+
+            var renderers = root.GetComponentsInChildren<SpriteRenderer>(true);
+            foreach (var renderer in renderers)
+            {
+                if (renderer != null && renderer.name == templateRenderer.name)
+                {
+                    return renderer;
+                }
+            }
+
+            return null;
+        }
+
         private static void BindHud(GameManager gameManager, GameObject hudRoot, FloatingTextManager floatingTextManager)
         {
             if (hudRoot == null)
@@ -260,7 +366,7 @@ namespace PathOfValor.RikoIntegration
 #endif
 
             var gunSpriteChanger = player.GetComponentInChildren<GunSpriteChanger>(true) ??
-                                   FindObjectOfType<GunSpriteChanger>();
+                                   FindFirstObjectByType<GunSpriteChanger>();
 
             if (gameManager.movementJoystick != null)
             {
@@ -335,8 +441,17 @@ namespace PathOfValor.RikoIntegration
         {
             if (gameManager.enemyActivator == null)
             {
-                gameManager.enemyActivator = FindObjectOfType<EnemyActivator>();
-                if (gameManager.enemyActivator == null)
+                gameManager.enemyActivator = FindFirstObjectByType<EnemyActivator>();
+            }
+
+            if (gameManager.enemyActivator == null)
+            {
+                gameManager.enemyActivator = EnsureFallbackEnemyActivator();
+                if (gameManager.enemyActivator != null)
+                {
+                    Debug.Log("[RikoBootstrapper] No EnemyActivator found in scene; using fallback activator.");
+                }
+                else
                 {
                     Debug.LogWarning("[RikoBootstrapper] No EnemyActivator found in scene; enemy waves will not start automatically.");
                 }
@@ -344,23 +459,102 @@ namespace PathOfValor.RikoIntegration
 
             if (gameManager.scenePortal == null)
             {
-                gameManager.scenePortal = FindObjectOfType<ScenePortal>();
-                if (gameManager.scenePortal == null)
+                gameManager.scenePortal = FindFirstObjectByType<ScenePortal>();
+            }
+
+            if (gameManager.scenePortal == null)
+            {
+                gameManager.scenePortal = EnsureFallbackScenePortal();
+                if (gameManager.scenePortal != null)
+                {
+                    Debug.Log("[RikoBootstrapper] No ScenePortal found in scene; using fallback portal stub.");
+                }
+                else
                 {
                     Debug.LogWarning("[RikoBootstrapper] No ScenePortal found in scene; exits will remain locked.");
                 }
             }
+            else if (gameManager.scenePortal != null && gameManager.scenePortal.name == FallbackScenePortalName)
+            {
+                UpdateFallbackScenePortal(gameManager.scenePortal);
+            }
 
             if (gameManager.enemyBatchHandler == null)
             {
-                gameManager.enemyBatchHandler = FindObjectOfType<EnemyBatchHandler>();
+                gameManager.enemyBatchHandler = FindFirstObjectByType<EnemyBatchHandler>();
             }
 
-            var enemies = FindObjectsOfType<Enemy>();
+            var enemies = FindObjectsByType<Enemy>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
             if (enemies != null && enemies.Length > 0)
             {
                 gameManager.totalEnemies = enemies.Length;
             }
+        }
+
+        private static EnemyActivator EnsureFallbackEnemyActivator()
+        {
+            var existing = GameObject.Find(FallbackEnemyActivatorName);
+            if (existing != null)
+            {
+                var activator = existing.GetComponent<EnemyActivator>();
+                if (activator != null)
+                {
+                    return activator;
+                }
+            }
+
+            var go = new GameObject(FallbackEnemyActivatorName);
+            DontDestroyOnLoad(go);
+            var fallback = go.AddComponent<EnemyActivator>();
+            fallback.firstEnemyBatch = null;
+            fallback.LockedBarriers = Array.Empty<GameObject>();
+            return fallback;
+        }
+
+        private static ScenePortal EnsureFallbackScenePortal()
+        {
+            var existing = GameObject.Find(FallbackScenePortalName);
+            if (existing != null)
+            {
+                var portal = existing.GetComponent<ScenePortal>();
+                if (portal != null)
+                {
+                    UpdateFallbackScenePortal(portal);
+                    return portal;
+                }
+            }
+
+            var go = new GameObject(FallbackScenePortalName);
+            DontDestroyOnLoad(go);
+
+            var collider = go.AddComponent<BoxCollider2D>();
+            collider.isTrigger = true;
+
+            var portalComponent = go.AddComponent<ScenePortal>();
+            portalComponent.sceneNames = new[] { SceneManager.GetActiveScene().name };
+
+            var filter = portalComponent.filter;
+            filter.useTriggers = true;
+            portalComponent.filter = filter;
+
+            var visual = new GameObject("DoorVisual");
+            visual.transform.SetParent(go.transform, false);
+            visual.AddComponent<SpriteRenderer>();
+
+            return portalComponent;
+        }
+
+        private static void UpdateFallbackScenePortal(ScenePortal portal)
+        {
+            if (portal == null)
+            {
+                return;
+            }
+
+            var sceneName = SceneManager.GetActiveScene().name;
+            portal.sceneNames = string.IsNullOrEmpty(sceneName)
+                ? new[] { "LevelOne" }
+                : new[] { sceneName };
         }
 
         private static T FindComponent<T>(GameObject root, string name) where T : Component

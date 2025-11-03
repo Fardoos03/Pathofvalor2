@@ -52,7 +52,7 @@ public class GameManager : MonoBehaviour
 
     private void Start() {
         if (player == null) {
-            player = FindObjectOfType<Player>();
+            player = FindFirstObjectByType<Player>();
             if (player == null) {
                 Debug.LogError("GameManager could not find a Player instance in the scene.");
                 return;
@@ -327,7 +327,7 @@ public class GameManager : MonoBehaviour
 
     public void ActivateEnemy() {
         if (enemyActivator == null)
-            enemyActivator = FindObjectOfType<EnemyActivator>();
+            enemyActivator = FindFirstObjectByType<EnemyActivator>();
 
         if (enemyActivator == null) {
             Debug.LogWarning("GameManager could not find an EnemyActivator. Enemy waves will not start.");
@@ -339,7 +339,7 @@ public class GameManager : MonoBehaviour
 
     public void OpenBarrier(int lockerID) {
         if (enemyActivator == null)
-            enemyActivator = FindObjectOfType<EnemyActivator>();
+            enemyActivator = FindFirstObjectByType<EnemyActivator>();
 
         if (enemyActivator != null) {
             enemyActivator.OpenBarrier(lockerID);
@@ -348,7 +348,7 @@ public class GameManager : MonoBehaviour
 
     public void OpenDoor() {
         if (scenePortal == null)
-            scenePortal = FindObjectOfType<ScenePortal>();
+            scenePortal = FindFirstObjectByType<ScenePortal>();
 
         if (scenePortal != null) {
             scenePortal.OpenDoor();

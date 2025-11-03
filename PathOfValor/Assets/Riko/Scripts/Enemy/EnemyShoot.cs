@@ -29,8 +29,9 @@ public class EnemyShoot : MonoBehaviour {
         for (int i = 0; i <= numberofProjectiles; i++) {
             Quaternion rotation = Quaternion.Euler(0, 0, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
             GameObject projectile = Instantiate(enemyProjectTile, origin, rotation);
-            projectile.GetComponent<Rigidbody2D>().linearVelocity = direction * enemyProjectileSpeed / 5;
-            projectile.GetComponent<Rigidbody2D>().isKinematic = true;
+            var body = projectile.GetComponent<Rigidbody2D>();
+            body.linearVelocity = direction * enemyProjectileSpeed / 5;
+            body.bodyType = RigidbodyType2D.Kinematic;
             projectile.GetComponent<EnemyProjectile>().isSlowType = isProjectileSlowType;
             direction.x += Random.Range(-offset, offset);
             direction.y += Random.Range(-offset, offset);

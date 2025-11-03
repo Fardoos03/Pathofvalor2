@@ -17,7 +17,13 @@ public class ScenePortal : Collidable {
 
     }
     public void OpenDoor() {
-        transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = doorLeafOpen;
+        SpriteRenderer doorRenderer = null;
+        if (transform.childCount > 0) {
+            doorRenderer = transform.GetChild(0).GetComponent<SpriteRenderer>();
+        }
+        if (doorRenderer != null) {
+            doorRenderer.sprite = doorLeafOpen;
+        }
         AudioController.instance.PlaySound(SoundClip.gateOpen);
         canChangeScene = true;
     }

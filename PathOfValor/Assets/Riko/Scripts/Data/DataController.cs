@@ -33,7 +33,7 @@ public class DataController : MonoBehaviour {
             return instance;
         }
 
-        DataController existing = FindObjectOfType<DataController>();
+        DataController existing = FindFirstObjectByType<DataController>();
         if (existing != null) {
             instance = existing;
             instance.EnsureDataInitialized();

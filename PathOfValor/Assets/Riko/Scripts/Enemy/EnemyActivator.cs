@@ -9,12 +9,17 @@ public class EnemyActivator : MonoBehaviour {
     public GameObject[] LockedBarriers;
 
     public void ActivateFirstEnemyBatch() {
-        if(firstEnemyBatch != null)
+        if (firstEnemyBatch != null)
             firstEnemyBatch.SetActive(true);
     }
     public void OpenBarrier(int lockerID) {
+        if (LockedBarriers == null || lockerID < 0 || lockerID >= LockedBarriers.Length) {
+            return;
+        }
         AudioController.instance.PlaySound(SoundClip.gateOpen);
-        Destroy(LockedBarriers[lockerID]);
+        var barrier = LockedBarriers[lockerID];
+        if (barrier != null)
+            Destroy(barrier);
     }
 
 }
