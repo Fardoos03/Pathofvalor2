@@ -6,45 +6,65 @@ namespace Cainos.PixelArtTopDown_Basic
 {
     public class TopDownCharacterController : MonoBehaviour
     {
-        public float speed;
+        [SerializeField]
+        private float speed = 5f;
 
         private Animator animator;
+        private Rigidbody2D body;
+        private SpriteRenderer spriteRenderer;
 
-        private void Start()
+        private static readonly int Direction = Animator.StringToHash("Direction");
+        private static readonly int IsMoving = Animator.StringToHash("IsMoving");
+
+        private void Awake()
         {
             animator = GetComponent<Animator>();
+            body = GetComponent<Rigidbody2D>();
+            spriteRenderer = GetComponent<SpriteRenderer>() ?? GetComponentInChildren<SpriteRenderer>();
         }
-
 
         private void Update()
         {
-            Vector2 dir = Vector2.zero;
-            if (Input.GetKey(KeyCode.A))
+            Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+            bool moving = input.sqrMagnitude > 0.01f;
+
+            animator.SetBool(IsMoving, moving);
+            if (moving)
             {
-                dir.x = -1;
-                animator.SetInteger("Direction", 3);
-            }
-            else if (Input.GetKey(KeyCode.D))
-            {
-                dir.x = 1;
-                animator.SetInteger("Direction", 2);
+                var directionIndex = GetDirectionIndex(input);
+                animator.SetInteger(Direction, directionIndex);
+                UpdateFacing(directionIndex);
             }
 
-            if (Input.GetKey(KeyCode.W))
+            Vector2 velocity = moving ? input.normalized * speed : Vector2.zero;
+            body.linearVelocity = velocity;
+        }
+
+        private static int GetDirectionIndex(Vector2 input)
+        {
+            if (Mathf.Abs(input.x) > Mathf.Abs(input.y))
             {
-                dir.y = 1;
-                animator.SetInteger("Direction", 1);
-            }
-            else if (Input.GetKey(KeyCode.S))
-            {
-                dir.y = -1;
-                animator.SetInteger("Direction", 0);
+                return input.x > 0 ? 2 : 3; // 2 = East, 3 = West
             }
 
-            dir.Normalize();
-            animator.SetBool("IsMoving", dir.magnitude > 0);
+            return input.y > 0 ? 1 : 0; // 1 = North, 0 = South
+        }
 
-            GetComponent<Rigidbody2D>().linearVelocity = speed * dir;
+        private void UpdateFacing(int directionIndex)
+        {
+            if (spriteRenderer == null)
+            {
+                return;
+            }
+
+            if (directionIndex == 2)
+            {
+                spriteRenderer.flipX = false;
+            }
+            else if (directionIndex == 3)
+            {
+                spriteRenderer.flipX = true;
+            }
         }
     }
 }

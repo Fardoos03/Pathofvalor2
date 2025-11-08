@@ -1,15 +1,8 @@
 fileFormatVersion: 2
-guid: 318841139f2ea6c468581225baff9a59
+guid: 0b12338f9b9e44bdeb75542254055ed9
 NativeFormatImporter:
   externalObjects: {}
   mainObjectFileID: 7400000
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 187605
-  packageName: Pixel Art Top Down - Basic
-  packageVersion: 1.2.2
-  assetPath: Assets/PathOfValor/Art/TopDownPack/Animation/AM Player N.anim
-  uploadId: 783393
