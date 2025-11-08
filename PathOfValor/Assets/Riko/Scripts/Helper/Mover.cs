@@ -36,8 +36,10 @@ public abstract class Mover : Fighter {
         isRunning = input.x != 0 || input.y != 0 ? true : false;
         if(moveDelta.x != 0)
             Animate(moveDelta.x);
+        var castOrigin = GetColliderOrigin();
+        var castSize = GetScaledColliderSize();
         //making sure we can move the player upward or downward by casting a box there beforehand
-        hit = Physics2D.BoxCast(transform.position, boxCollider.size, 0, new Vector2(0, moveDelta.y), Mathf.Abs(moveDelta.y * Time.deltaTime), LayerMask.GetMask("Actor", "Blocking"));
+        hit = Physics2D.BoxCast(castOrigin, castSize, 0, new Vector2(0, moveDelta.y), Mathf.Abs(moveDelta.y * Time.deltaTime), LayerMask.GetMask("Actor", "Blocking"));
         bool blockedVertically = hit.collider != null && !hit.collider.isTrigger;
         if (!blockedVertically) {
             //moving the player
@@ -46,7 +48,7 @@ public abstract class Mover : Fighter {
         else if (pushDirection != Vector3.zero) {
             pushDirection = Vector3.zero;
         }
-        hit = Physics2D.BoxCast(transform.position, boxCollider.size, 0, new Vector2(moveDelta.x, 0), Mathf.Abs(moveDelta.x * Time.deltaTime), LayerMask.GetMask("Actor", "Blocking"));
+        hit = Physics2D.BoxCast(castOrigin, castSize, 0, new Vector2(moveDelta.x, 0), Mathf.Abs(moveDelta.x * Time.deltaTime), LayerMask.GetMask("Actor", "Blocking"));
         bool blockedHorizontally = hit.collider != null && !hit.collider.isTrigger;
         if (!blockedHorizontally) {
             //moving the player
@@ -75,6 +77,16 @@ public abstract class Mover : Fighter {
         pushDirection = Vector3.Lerp(pushDirection,Vector3.zero,PushRecoverySpeed);
         if(anim != null)
             anim.SetBool("IsRunning", isRunning);
+    }
+
+    private Vector2 GetColliderOrigin() {
+        var lossy = transform.lossyScale;
+        return (Vector2)transform.position + new Vector2(boxCollider.offset.x * lossy.x, boxCollider.offset.y * lossy.y);
+    }
+
+    private Vector2 GetScaledColliderSize() {
+        var lossy = transform.lossyScale;
+        return new Vector2(boxCollider.size.x * Mathf.Abs(lossy.x), boxCollider.size.y * Mathf.Abs(lossy.y));
     }
 
 }

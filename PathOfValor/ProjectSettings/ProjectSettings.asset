@@ -4,7 +4,7 @@
 PlayerSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 28
-  productGUID: c4789e07712de4807bbe0a01314ee0ea
+  productGUID: 00000000000000000000000000000000
   AndroidProfiler: 0
   AndroidFilterTouchesWhenObscured: 0
   AndroidEnableSustainedPerformanceMode: 0
@@ -931,12 +931,12 @@ PlayerSettings:
   qnxGraphicConfPath: 
   apiCompatibilityLevel: 6
   captureStartupLogs: {}
-  activeInputHandler: 2
+  activeInputHandler: 0
   windowsGamepadBackendHint: 0
   cloudProjectId: 35999146-b43a-4af9-9157-59d753a5ebb8
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: PathOfValor 2025-10-28_11-27-20
+  projectName: 
   organizationId: jozakina
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
