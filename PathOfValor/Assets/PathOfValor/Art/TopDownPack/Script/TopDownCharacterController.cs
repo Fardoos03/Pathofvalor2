@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 namespace Cainos.PixelArtTopDown_Basic
 {
@@ -25,7 +28,7 @@ namespace Cainos.PixelArtTopDown_Basic
 
         private void Update()
         {
-            Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+            Vector2 input = ReadMovementInput();
             bool moving = input.sqrMagnitude > 0.01f;
 
             animator.SetBool(IsMoving, moving);
@@ -36,8 +39,15 @@ namespace Cainos.PixelArtTopDown_Basic
                 UpdateFacing(directionIndex);
             }
 
-            Vector2 velocity = moving ? input.normalized * speed : Vector2.zero;
-            body.linearVelocity = velocity;
+            if (body != null)
+            {
+                Vector2 velocity = moving ? input.normalized * speed : Vector2.zero;
+#if UNITY_2022_2_OR_NEWER
+                body.linearVelocity = velocity;
+#else
+                body.velocity = velocity;
+#endif
+            }
         }
 
         private static int GetDirectionIndex(Vector2 input)
@@ -66,5 +76,74 @@ namespace Cainos.PixelArtTopDown_Basic
                 spriteRenderer.flipX = true;
             }
         }
+
+        private Vector2 ReadMovementInput()
+        {
+            Vector2 input = Vector2.zero;
+
+#if ENABLE_INPUT_SYSTEM
+            var enhancedInput = ReadInputSystemVector();
+            if (enhancedInput.sqrMagnitude > 0.0001f)
+            {
+                input = enhancedInput;
+            }
+#endif
+
+#if ENABLE_LEGACY_INPUT_MANAGER
+            if (input.sqrMagnitude <= 0.0001f)
+            {
+                input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+            }
+#endif
+
+            return input;
+        }
+
+#if ENABLE_INPUT_SYSTEM
+        private static Vector2 ReadInputSystemVector()
+        {
+            var keyboard = Keyboard.current;
+            if (keyboard != null)
+            {
+                Vector2 input = Vector2.zero;
+                if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed)
+                {
+                    input.y += 1f;
+                }
+
+                if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed)
+                {
+                    input.y -= 1f;
+                }
+
+                if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed)
+                {
+                    input.x += 1f;
+                }
+
+                if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed)
+                {
+                    input.x -= 1f;
+                }
+
+                if (input.sqrMagnitude > 0.0001f)
+                {
+                    return Vector2.ClampMagnitude(input, 1f);
+                }
+            }
+
+            var gamepad = Gamepad.current;
+            if (gamepad != null)
+            {
+                var stick = gamepad.leftStick.ReadValue();
+                if (stick.sqrMagnitude > 0.0001f)
+                {
+                    return stick;
+                }
+            }
+
+            return Vector2.zero;
+        }
+#endif
     }
 }
