@@ -19,13 +19,21 @@ public class Tile : MonoBehaviour
 	void Start () 
 	{
 		// obtain the local references
-		playerTransform = GameObject.Find("PlayerCharacter").transform;
+		ResolvePlayerTransform();
 		spriteRenderer = this.GetComponent<SpriteRenderer>();
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
+		if(playerTransform == null)
+		{
+			ResolvePlayerTransform();
+			if(playerTransform == null)
+			{
+				return;
+			}
+		}
 
 		// to ensure correct positioning of the environment around the player (3D Depth Effect)
 		// we need to make the tiles below the player higher than the player in the render layering
@@ -43,5 +51,29 @@ public class Tile : MonoBehaviour
 				spriteRenderer.sortingLayerName = "Tileset";
 			}
 		}
+	}
+
+	private void ResolvePlayerTransform()
+	{
+		var playerObject = FindPlayerObject();
+		playerTransform = playerObject != null ? playerObject.transform : null;
+	}
+
+	private GameObject FindPlayerObject()
+	{
+		try
+		{
+			var taggedPlayer = GameObject.FindGameObjectWithTag("Player");
+			if(taggedPlayer != null)
+			{
+				return taggedPlayer;
+			}
+		}
+		catch (UnityException)
+		{
+			// ignored - tag might not exist yet.
+		}
+
+		return GameObject.Find("PlayerCharacter");
 	}
 }

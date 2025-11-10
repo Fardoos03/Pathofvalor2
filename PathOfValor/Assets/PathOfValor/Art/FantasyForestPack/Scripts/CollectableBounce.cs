@@ -62,9 +62,15 @@ public class CollectableBounce : MonoBehaviour
 
 	void OnTriggerEnter2D(Collider2D collider)
 	{
-		if(collider.gameObject.name == "PlayerCharacter")
+		if(IsPlayerCollider(collider))
 		{
 			Destroy(gameObject);
 		}
+	}
+
+	private static bool IsPlayerCollider(Collider2D collider)
+	{
+		return collider != null &&
+		       (collider.CompareTag("Player") || collider.gameObject.name == "PlayerCharacter");
 	}
 }

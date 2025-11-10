@@ -70,7 +70,7 @@ public class Trigger : MonoBehaviour
 
 	void OnTriggerEnter2D(Collider2D collider)
 	{
-		if(collider.gameObject.name == "PlayerCharacter")
+		if(IsPlayerCollider(collider))
 		{
 			// toggle this object
 			ToggleObject();
@@ -85,5 +85,11 @@ public class Trigger : MonoBehaviour
 				}
 			}
 		}
+	}
+
+	private static bool IsPlayerCollider(Collider2D collider)
+	{
+		return collider != null &&
+		       (collider.CompareTag("Player") || collider.gameObject.name == "PlayerCharacter");
 	}
 }

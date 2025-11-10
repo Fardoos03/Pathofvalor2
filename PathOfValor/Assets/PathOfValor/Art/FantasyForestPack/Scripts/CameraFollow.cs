@@ -29,16 +29,27 @@ public class CameraFollow : MonoBehaviour
 	///  Reference to the users current view transform.
 	/// </summary>
 	private Transform PlayerTransform;
+
+	[SerializeField]
+	private string playerTag = "Player";
 	#endregion
 
 	void Start()
 	{
-		// get the players transform
-		PlayerTransform = PlayerCharacter.transform;
+		ResolvePlayerTransform();
 	}
 	
 	void Update ()
 	{
+		if(PlayerTransform == null)
+		{
+			ResolvePlayerTransform();
+			if(PlayerTransform == null)
+			{
+				return;
+			}
+		}
+
 		// By default the target x and y coordinates of the camera are it's current x and y coordinates.
 		Vector2 target = new Vector2(transform.position.x, transform.position.y);
 		
@@ -82,5 +93,36 @@ public class CameraFollow : MonoBehaviour
 	{
 		// Returns true if the distance between the camera and the player in the y axis is greater than the y margin.
 		return Mathf.Abs(transform.position.y - PlayerTransform.position.y) > Margins.y;
+	}
+
+	private void ResolvePlayerTransform()
+	{
+		if(PlayerCharacter == null)
+		{
+			PlayerCharacter = FindPlayer();
+		}
+
+		if(PlayerCharacter != null)
+		{
+			PlayerTransform = PlayerCharacter.transform;
+		}
+	}
+
+	private GameObject FindPlayer()
+	{
+		try
+		{
+			return GameObject.FindGameObjectWithTag(playerTag);
+		}
+		catch (UnityException)
+		{
+			return GameObject.Find("PlayerCharacter");
+		}
+	}
+
+	public void SetPlayer(GameObject player)
+	{
+		PlayerCharacter = player;
+		PlayerTransform = player != null ? player.transform : null;
 	}
 }

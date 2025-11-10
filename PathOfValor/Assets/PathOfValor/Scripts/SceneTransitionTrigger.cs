@@ -9,6 +9,7 @@ using UnityEditor;
 namespace PathOfValor
 {
     [RequireComponent(typeof(Collider2D))]
+    [RequireComponent(typeof(Rigidbody2D))]
     public class SceneTransitionTrigger : MonoBehaviour
     {
         public enum ActivationMode
@@ -28,10 +29,16 @@ namespace PathOfValor
 
         private bool playerInRange;
 
+        private void Awake()
+        {
+            ConfigureRigidbody();
+        }
+
         private void Reset()
         {
             var collider = GetComponent<Collider2D>();
             if (collider != null) collider.isTrigger = true;
+            ConfigureRigidbody();
         }
 
         private void OnTriggerEnter2D(Collider2D other)
@@ -94,5 +101,20 @@ namespace PathOfValor
             sceneToLoad = Path.GetFileNameWithoutExtension(scenePath);
         }
 #endif
+
+        private void ConfigureRigidbody()
+        {
+            var body = GetComponent<Rigidbody2D>();
+            if (body == null)
+            {
+                body = gameObject.AddComponent<Rigidbody2D>();
+            }
+
+            body.bodyType = RigidbodyType2D.Kinematic;
+            body.simulated = true;
+            body.useFullKinematicContacts = false;
+            body.gravityScale = 0f;
+            body.constraints = RigidbodyConstraints2D.FreezeAll;
+        }
     }
 }

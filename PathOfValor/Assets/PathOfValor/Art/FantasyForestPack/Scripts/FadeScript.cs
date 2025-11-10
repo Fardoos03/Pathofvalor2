@@ -70,7 +70,15 @@ public class FadeScript : MonoBehaviour
 			{
 				AlphaValue = 1.0f;
 				FadeType = FADETYPE.IN;
-				GameObject.Find("PlayerCharacter").GetComponent<PlayerMovement>().RespawnPlayerAtCheckpoint();
+				var player = FindPlayerObject();
+				if(player != null)
+				{
+					var movement = player.GetComponent<PlayerMovement>();
+					if(movement != null)
+					{
+						movement.RespawnPlayerAtCheckpoint();
+					}
+				}
 			}
 		}
 
@@ -103,5 +111,23 @@ public class FadeScript : MonoBehaviour
 		int levelID = SceneManager.GetActiveScene().buildIndex + 1;
 		if(levelID > SceneManager.sceneCountInBuildSettings - 1){ levelID = 0; }
 		SceneManager.LoadScene(levelID);
+	}
+
+	private GameObject FindPlayerObject()
+	{
+		try
+		{
+			var taggedPlayer = GameObject.FindGameObjectWithTag("Player");
+			if(taggedPlayer != null)
+			{
+				return taggedPlayer;
+			}
+		}
+		catch (UnityException)
+		{
+			// ignored - tag might not exist.
+		}
+
+		return GameObject.Find("PlayerCharacter");
 	}
 }
