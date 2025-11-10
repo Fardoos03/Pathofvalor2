@@ -265,7 +265,7 @@ public class GameManager : MonoBehaviour
     public void LevelComplete() {
         if (!isLevelCompleted) {
             isLevelCompleted = true;
-            AudioController.instance.PlaySound(SoundClip.victory);
+            AudioController.instance?.PlaySound(SoundClip.victory);
             //ShowText("Level Complete", 23, Color.blue, player.transform.position + (Vector3.up * 0.16f), Vector3.zero, 5f);
             ShowToastMessage("Level Complete!", 5f);
         }

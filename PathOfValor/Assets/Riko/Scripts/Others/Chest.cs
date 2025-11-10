@@ -22,17 +22,17 @@ public class Chest : Collectable {
                 if (GameManager.instance.UnlockWeapon()) {
                     //GameManager.instance.ShowText("new weapon!", 23, Color.green, transform.position, Vector3.up * 25, 1.5f);
                     GameManager.instance.ShowToastMessage("New Weapon!", 5f);
-                    AudioController.instance.PlaySound(SoundClip.rewardWeapon);
+                    AudioController.instance?.PlaySound(SoundClip.rewardWeapon);
                 }
                 //if all weapons are already unlocked we just give player gold
                 else {
                     GameManager.instance.ShowText("+" + pesosAmount + " gold!", 23, Color.yellow, transform.position, Vector3.up * 25, 1.5f);
-                    AudioController.instance.PlaySound(SoundClip.rewardCoin);
+                    AudioController.instance?.PlaySound(SoundClip.rewardCoin);
                 }
             }
             else {
                 GameManager.instance.ShowText("+" + pesosAmount + " gold!", 23, Color.yellow, transform.position, Vector3.up * 25, 1.5f);
-                AudioController.instance.PlaySound(SoundClip.rewardCoin);
+                AudioController.instance?.PlaySound(SoundClip.rewardCoin);
             }
             
 

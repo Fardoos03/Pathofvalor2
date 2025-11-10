@@ -16,7 +16,7 @@ public class EnemyActivator : MonoBehaviour {
         if (LockedBarriers == null || lockerID < 0 || lockerID >= LockedBarriers.Length) {
             return;
         }
-        AudioController.instance.PlaySound(SoundClip.gateOpen);
+        AudioController.instance?.PlaySound(SoundClip.gateOpen);
         var barrier = LockedBarriers[lockerID];
         if (barrier != null)
             Destroy(barrier);

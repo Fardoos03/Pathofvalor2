@@ -70,6 +70,11 @@ namespace PathOfValor.Cutscenes
         [SerializeField] private float kidnappingDelaySeconds = 0.9f;
         [SerializeField] private float resumeControlDelay = 1.5f;
 
+        [Header("Audio")]
+        [SerializeField] private AudioClip rumbleAudioClip;
+        [SerializeField] [Range(0f, 1f)] private float rumbleAudioVolume = 0.8f;
+        [SerializeField] private bool stopExistingAudioOnAwake = true;
+
         private Transform player;
         private TopDownCharacterController playerController;
         private Rigidbody2D playerBody;
@@ -88,6 +93,7 @@ namespace PathOfValor.Cutscenes
         private bool villainDismissed;
         private bool completionRoutineStarted;
         private bool playerFrozen;
+        private AudioSource ambientAudioSource;
 
         private void Awake()
         {
@@ -106,6 +112,13 @@ namespace PathOfValor.Cutscenes
             }
             cassiusCollider = GetComponent<Collider2D>();
             ui = new SimpleDialogueUI(talkKey);
+
+            if (stopExistingAudioOnAwake)
+            {
+                StopExistingAudio();
+            }
+
+            ambientAudioSource = CreateAmbientAudioSource();
         }
 
         private void OnDestroy()
@@ -127,6 +140,13 @@ namespace PathOfValor.Cutscenes
             if (conversationStarted && playerController != null)
             {
                 playerController.enabled = true;
+            }
+
+            if (ambientAudioSource != null)
+            {
+                ambientAudioSource.Stop();
+                Destroy(ambientAudioSource.gameObject);
+                ambientAudioSource = null;
             }
         }
 
@@ -225,6 +245,7 @@ namespace PathOfValor.Cutscenes
                     {
                         rumbleTriggered = true;
                         StartCoroutine(RumbleRoutine());
+                        PlayRumbleAudio();
                     }
 
                     break;
@@ -493,6 +514,50 @@ namespace PathOfValor.Cutscenes
             foreach (var collider in colliders3D)
             {
                 collider.enabled = false;
+            }
+        }
+
+        private AudioSource CreateAmbientAudioSource()
+        {
+            var audioRoot = new GameObject("IntroductionAmbientAudio");
+            audioRoot.transform.SetParent(transform, false);
+            var source = audioRoot.AddComponent<AudioSource>();
+            source.playOnAwake = false;
+            source.loop = true;
+            source.volume = rumbleAudioVolume;
+            return source;
+        }
+
+        private void PlayRumbleAudio()
+        {
+            if (ambientAudioSource == null)
+            {
+                ambientAudioSource = CreateAmbientAudioSource();
+            }
+
+            if (rumbleAudioClip == null || ambientAudioSource.isPlaying && ambientAudioSource.clip == rumbleAudioClip)
+            {
+                return;
+            }
+
+            ambientAudioSource.volume = rumbleAudioVolume;
+            ambientAudioSource.clip = rumbleAudioClip;
+            ambientAudioSource.Play();
+        }
+
+        private static void StopExistingAudio()
+        {
+#if UNITY_2023_1_OR_NEWER
+            var allSources = Object.FindObjectsByType<AudioSource>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+#else
+            var allSources = Object.FindObjectsOfType<AudioSource>();
+#endif
+            foreach (var source in allSources)
+            {
+                if (source != null && source.isPlaying)
+                {
+                    source.Stop();
+                }
             }
         }
 

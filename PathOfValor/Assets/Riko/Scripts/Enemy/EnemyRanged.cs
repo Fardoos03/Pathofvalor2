@@ -178,7 +178,7 @@ public class EnemyRanged : Mover {
         isDeath = true;
         GameManager.instance.UpdateEnemyKillText();
         anim.Play("EnemyDeathEffect");
-        AudioController.instance.PlaySound(SoundClip.enemyDeath);
+        AudioController.instance?.PlaySound(SoundClip.enemyDeath);
         transform.parent.GetComponent<EnemyBatchHandler>().RemoveEnemy(transform);
         GameManager.instance.GrantXp(xpValue);
         GameManager.instance.ShowText("+" + xpValue + " xp", 30, Color.magenta, transform.position, Vector3.up * 40, 1.0f);

@@ -58,7 +58,6 @@ namespace PathOfValor.RikoIntegration
         {
             var dataController = EnsureSingleton<DataController>(DataControllerPrefabPath, true);
             var gameManager = EnsureSingleton<GameManager>(GameManagerPrefabPath, true);
-            EnsureSingleton<AudioController>(AudioManagerPrefabPath, true);
             var hudRoot = EnsureHud(out var floatingTextManager);
             var player = EnsurePlayer();
 

@@ -24,7 +24,7 @@ public class ScenePortal : Collidable {
         if (doorRenderer != null) {
             doorRenderer.sprite = doorLeafOpen;
         }
-        AudioController.instance.PlaySound(SoundClip.gateOpen);
+        AudioController.instance?.PlaySound(SoundClip.gateOpen);
         canChangeScene = true;
     }
 
