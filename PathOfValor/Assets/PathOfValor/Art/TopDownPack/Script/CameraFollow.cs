@@ -8,25 +8,22 @@ namespace Cainos.PixelArtTopDown_Basic
     public class CameraFollow : MonoBehaviour
     {
         public Transform target;
-        public float lerpSpeed = 1.0f;
 
-        private Vector3 offset;
-
-        private Vector3 targetPos;
+        private float zOffset;
 
         private void Start()
         {
             if (target == null) return;
 
-            offset = transform.position - target.position;
+            CacheOffset();
+            SnapToTarget();
         }
 
-        private void Update()
+        private void LateUpdate()
         {
             if (target == null) return;
 
-            targetPos = target.position + offset;
-            transform.position = Vector3.Lerp(transform.position, targetPos, lerpSpeed * Time.deltaTime);
+            transform.position = GetTargetPosition();
         }
 
         public void SetTarget(Transform newTarget, bool snapImmediately = false)
@@ -34,11 +31,28 @@ namespace Cainos.PixelArtTopDown_Basic
             target = newTarget;
             if (target == null) return;
 
-            offset = transform.position - target.position;
+            CacheOffset();
             if (snapImmediately)
             {
-                transform.position = target.position + offset;
+                SnapToTarget();
             }
+        }
+
+        private void CacheOffset()
+        {
+            zOffset = transform.position.z - target.position.z;
+        }
+
+        private Vector3 GetTargetPosition()
+        {
+            var targetPosition = target.position;
+            targetPosition.z += zOffset;
+            return targetPosition;
+        }
+
+        private void SnapToTarget()
+        {
+            transform.position = GetTargetPosition();
         }
 
     }
