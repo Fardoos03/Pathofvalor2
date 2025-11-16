@@ -213,6 +213,7 @@ namespace PathOfValor
                 return;
             }
 
+            transform.position = new Vector3(0.4f, 0.2f, 0f);
             // Force a consistent footprint for LevelTwo regardless of where we teleported from.
             transform.localScale = Vector3.one;
 
