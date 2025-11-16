@@ -19,7 +19,7 @@ namespace PathOfValor
         {
             { "Introduction", new Vector3(5.8354f, 0.9188f, 0f) },
             { "LevelOne", new Vector3(8.3799f, 3.4633f, 0f) },
-            { "LevelTwo", Vector3.zero },
+            { "LevelTwo", new Vector3(0.4f, 0f, 0f) },
             { "LevelThree", Vector3.zero },
             { "LevelFour", Vector3.zero }
         };
@@ -66,6 +66,7 @@ namespace PathOfValor
             }
 
             ResetVelocity();
+            ApplyLevelSpecificOverrides(scene.name);
             UpdateCameraTargets();
             CleanupLegacyPlayers();
         }
@@ -203,6 +204,36 @@ namespace PathOfValor
 #else
             body.velocity = Vector2.zero;
 #endif
+        }
+
+        private void ApplyLevelSpecificOverrides(string sceneName)
+        {
+            if (sceneName != "LevelTwo")
+            {
+                return;
+            }
+
+            // Force a consistent footprint for LevelTwo regardless of where we teleported from.
+            transform.localScale = Vector3.one;
+
+            var controller = GetComponent<Cainos.PixelArtTopDown_Basic.TopDownCharacterController>();
+            if (controller != null)
+            {
+                controller.Speed = 0.6f;
+            }
+
+            var spriteRenderer = GetComponent<SpriteRenderer>() ?? GetComponentInChildren<SpriteRenderer>();
+            if (spriteRenderer != null && spriteRenderer.drawMode != SpriteDrawMode.Simple)
+            {
+                spriteRenderer.size = new Vector2(0.1f, 0.1f);
+            }
+
+            var box = GetComponent<BoxCollider2D>();
+            if (box != null)
+            {
+                box.size = new Vector2(1f, 1f);
+                box.offset = Vector2.zero;
+            }
         }
 
         private static T[] FindAll<T>() where T : UnityEngine.Object

@@ -12,6 +12,12 @@ namespace Cainos.PixelArtTopDown_Basic
         [SerializeField]
         private float speed = 5f;
 
+        public float Speed
+        {
+            get => speed;
+            set => speed = value;
+        }
+
         private Animator animator;
         private Rigidbody2D body;
         private SpriteRenderer spriteRenderer;
