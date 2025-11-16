@@ -129,8 +129,17 @@ namespace PathOfValor.RikoIntegration
             if (floatingTextManager != null)
             {
                 var hudRoot = floatingTextManager.transform.root.gameObject;
+                EnsureFloatingTextPrefab(floatingTextManager);
                 DontDestroyOnLoad(hudRoot);
                 return hudRoot;
+            }
+
+            var existingHud = GameObject.Find("Canvas_Hud");
+            if (existingHud != null)
+            {
+                floatingTextManager = EnsureFloatingTextManager(existingHud);
+                DontDestroyOnLoad(existingHud);
+                return existingHud;
             }
 
             var prefab = Resources.Load<GameObject>(HudPrefabPath);
@@ -144,21 +153,45 @@ namespace PathOfValor.RikoIntegration
             var instance = Instantiate(prefab);
             DontDestroyOnLoad(instance);
 
-            floatingTextManager = instance.GetComponentInChildren<FloatingTextManager>(true);
-            if (floatingTextManager == null)
-            {
-                Debug.LogWarning("[RikoBootstrapper] Canvas_Hud is missing a FloatingTextManager component.");
-            }
-            else if (floatingTextManager.textPrefab == null)
-            {
-                var floatingTextPrefab = Resources.Load<GameObject>(FloatingTextPrefabPath);
-                if (floatingTextPrefab != null)
-                {
-                    floatingTextManager.textPrefab = floatingTextPrefab;
-                }
-            }
+            floatingTextManager = EnsureFloatingTextManager(instance);
 
             return instance;
+        }
+
+        private static FloatingTextManager EnsureFloatingTextManager(GameObject hudRoot)
+        {
+            if (hudRoot == null)
+            {
+                return null;
+            }
+
+            var manager = hudRoot.GetComponentInChildren<FloatingTextManager>(true);
+            if (manager == null)
+            {
+                manager = hudRoot.AddComponent<FloatingTextManager>();
+                Debug.LogWarning("[RikoBootstrapper] Canvas_Hud was missing a FloatingTextManager component; one was added at runtime.");
+            }
+
+            EnsureFloatingTextPrefab(manager);
+            return manager;
+        }
+
+        private static void EnsureFloatingTextPrefab(FloatingTextManager floatingTextManager)
+        {
+            if (floatingTextManager == null || floatingTextManager.textPrefab != null)
+            {
+                return;
+            }
+
+            var floatingTextPrefab = Resources.Load<GameObject>(FloatingTextPrefabPath);
+            if (floatingTextPrefab != null)
+            {
+                floatingTextManager.textPrefab = floatingTextPrefab;
+            }
+            else
+            {
+                Debug.LogWarning($"[RikoBootstrapper] Unable to assign FloatingText prefab from Resources/{FloatingTextPrefabPath}.");
+            }
         }
 
         private static Player EnsurePlayer()

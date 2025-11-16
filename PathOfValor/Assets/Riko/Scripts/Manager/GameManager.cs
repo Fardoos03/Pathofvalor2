@@ -43,6 +43,7 @@ public class GameManager : MonoBehaviour
     public SceneLoadingBarController loadLevel;
     private Transform weaponContainer;
     private int currentenemyKill = -1;
+    private bool hasLoggedMissingEnemyKillText;
 
     private void Awake()
     {
@@ -69,6 +70,7 @@ public class GameManager : MonoBehaviour
         DataController controller = DataController.EnsureInstance();
         data = controller.data;
         LoadData();
+        EnsureEnemyKillTextReference();
         UpdateEnemyKillText();
     }
     
@@ -180,12 +182,19 @@ public class GameManager : MonoBehaviour
 
     //if weapon is lastselected weapon before closing game enable else disable
     private bool IsSelectedWeapon(Weapon weapon) {
-        if (weapon.weaponID == data.weaponSelected) {
-            weapon.ChangeSprites();
-            switchWepImage.sprite = weapon.GunSide;
-            return true;
+        if (weapon == null || data == null) {
+            return false;
         }
-        return false;
+
+        if (weapon.weaponID != data.weaponSelected) {
+            return false;
+        }
+
+        weapon.ChangeSprites();
+        if (switchWepImage != null) {
+            switchWepImage.sprite = weapon.GunSide;
+        }
+        return true;
     }
     //checking collected weapons, if weapon is collected then give it a ID
     public Weapon CheckWeapons(int dataWepID, int newID) {
@@ -307,6 +316,15 @@ public class GameManager : MonoBehaviour
 
     public void UpdateEnemyKillText() {
         currentenemyKill += 1;
+        if (enemyKillText == null) {
+            if (!hasLoggedMissingEnemyKillText) {
+                Debug.LogWarning("GameManager enemyKillText is not assigned; kill counter UI will not update.");
+                hasLoggedMissingEnemyKillText = true;
+            }
+            return;
+        }
+
+        hasLoggedMissingEnemyKillText = false;
         if (currentenemyKill < 10)
             enemyKillText.text = "0" + currentenemyKill + "/" + totalEnemies;
         else enemyKillText.text = "" + currentenemyKill + "/" + totalEnemies;
@@ -362,6 +380,24 @@ public class GameManager : MonoBehaviour
         SaveData();
         loadLevel.gameObject.SetActive(true);
         loadLevel.LoadLevel(name);
+    }
+
+    private void EnsureEnemyKillTextReference() {
+        if (enemyKillText != null)
+            return;
+
+        var hud = GameObject.Find("Canvas_Hud");
+        if (hud == null)
+            return;
+
+        var texts = hud.GetComponentsInChildren<Text>(true);
+        foreach (var text in texts) {
+            if (text != null && text.name == "txt_enemykill") {
+                enemyKillText = text;
+                hasLoggedMissingEnemyKillText = false;
+                break;
+            }
+        }
     }
 
     /*/// <summary>
