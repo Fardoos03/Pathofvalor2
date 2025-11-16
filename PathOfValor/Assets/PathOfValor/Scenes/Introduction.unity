@@ -35766,8 +35766,8 @@ MonoBehaviour:
   villainTravelSeconds: 2
   kidnappingDelaySeconds: 0.9
   resumeControlDelay: 1.5
-  rumbleAudioClip: {fileID: 8300000, guid: 9e39e281b0c470b499ec56039218286d, type: 3}
-  rumbleAudioVolume: 0.8
+  rumbleAudioClip: {fileID: 8300000, guid: e82ff3974b7377543bd425e6b92acf56, type: 3}
+  rumbleAudioVolume: 0.671
   stopExistingAudioOnAwake: 1
 --- !u!1001 &927864205048161885
 PrefabInstance:
