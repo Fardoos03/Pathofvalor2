@@ -18,7 +18,7 @@ namespace PathOfValor
         private static readonly Dictionary<string, Vector3> FallbackSpawnPositions = new()
         {
             { "Introduction", new Vector3(5.8354f, 0.9188f, 0f) },
-            { "LevelOne", new Vector3(8.3799f, 3.4633f, 0f) },
+            { "LevelOne", new Vector3(10.5353f, 50.4633f, 0f) },
             { "LevelTwo", new Vector3(0.4f, 0f, 0f) },
             { "LevelThree", Vector3.zero },
             { "LevelFour", Vector3.zero }
